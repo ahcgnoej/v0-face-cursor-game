@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 
 interface StartScreenProps {
-  onStart: () => void
+  onStart: () => void;
 }
 
 export default function StartScreen({ onStart }: StartScreenProps) {
@@ -83,9 +83,9 @@ export default function StartScreen({ onStart }: StartScreenProps) {
             <p
               key={i}
               className={`text-sm ${
-                text.includes("ALERT") || text.includes("HIJACKED")
+                text?.includes("ALERT") || text?.includes("HIJACKED")
                   ? "text-red-400"
-                  : text.includes("Mission") || text.includes("Good luck")
+                  : text?.includes("Mission") || text?.includes("Good luck")
                   ? "text-yellow-400"
                   : "text-green-400"
               }`}
