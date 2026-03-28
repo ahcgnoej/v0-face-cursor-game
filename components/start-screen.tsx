@@ -30,7 +30,8 @@ export default function StartScreen({ onStart }: StartScreenProps) {
     let index = 0
     const interval = setInterval(() => {
       if (index < bootMessages.length) {
-        setBootText((prev) => [...prev, bootMessages[index]])
+        const message = bootMessages[index] ?? ""
+        setBootText((prev) => [...prev, message])
         index++
       } else {
         clearInterval(interval)
@@ -79,20 +80,23 @@ export default function StartScreen({ onStart }: StartScreenProps) {
           <span className="ml-2 text-xs text-green-500/50">terminal</span>
         </div>
         <div className="h-64 overflow-hidden">
-          {bootText.map((text, i) => (
-            <p
-              key={i}
-              className={`text-sm ${
-                text?.includes("ALERT") || text?.includes("HIJACKED")
-                  ? "text-red-400"
-                  : text?.includes("Mission") || text?.includes("Good luck")
-                  ? "text-yellow-400"
-                  : "text-green-400"
-              }`}
-            >
-              {text || "\u00A0"}
-            </p>
-          ))}
+          {bootText.map((text, i) => {
+            const safeText = text ?? ""
+            return (
+              <p
+                key={i}
+                className={`text-sm ${
+                  safeText.includes("ALERT") || safeText.includes("HIJACKED")
+                    ? "text-red-400"
+                    : safeText.includes("Mission") || safeText.includes("Good luck")
+                    ? "text-yellow-400"
+                    : "text-green-400"
+                }`}
+              >
+                {safeText || "\u00A0"}
+              </p>
+            )
+          })}
           <span className="inline-block h-4 w-2 animate-pulse bg-green-400" />
         </div>
       </div>
