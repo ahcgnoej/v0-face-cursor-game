@@ -1,5 +1,6 @@
 "use client"
 
+// Face cursor game with combo system
 import { useState, useEffect, useRef, useCallback } from "react"
 import FakeCursor from "@/components/fake-cursor"
 import GameUI from "@/components/game-ui"
@@ -73,12 +74,9 @@ export default function Page() {
   // Refs for values used in FaceMesh callback (to avoid re-creating effect)
   const assistLevelRef = useRef(assistLevel)
   const targetPosRef = useRef(targetPos)
-  const handleFaceClickRef = useRef(handleFaceClick)
+  const handleFaceClickRef = useRef<() => void>(() => {}) // Initialize with no-op
   
-  // Keep refs in sync
-  useEffect(() => { assistLevelRef.current = assistLevel }, [assistLevel])
-  useEffect(() => { targetPosRef.current = targetPos }, [targetPos])
-  useEffect(() => { handleFaceClickRef.current = handleFaceClick }, [handleFaceClick])
+  // Keep refs in sync (defined after the callbacks below)
 
   // Target bounce animation
   useEffect(() => {
@@ -158,6 +156,11 @@ export default function Page() {
       element.dispatchEvent(clickEvent)
     }
   }, [])
+
+  // Keep refs in sync with latest values
+  useEffect(() => { assistLevelRef.current = assistLevel }, [assistLevel])
+  useEffect(() => { targetPosRef.current = targetPos }, [targetPos])
+  useEffect(() => { handleFaceClickRef.current = handleFaceClick }, [handleFaceClick])
 
   // Initialize MediaPipe FaceMesh
   useEffect(() => {
