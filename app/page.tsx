@@ -69,6 +69,16 @@ export default function Page() {
   const smoothCursorPos = useRef({ x: 0, y: 0 })
   const animationFrameRef = useRef<number>()
   const bounceAnimationRef = useRef<number>()
+  
+  // Refs for values used in FaceMesh callback (to avoid re-creating effect)
+  const assistLevelRef = useRef(assistLevel)
+  const targetPosRef = useRef(targetPos)
+  const handleFaceClickRef = useRef(handleFaceClick)
+  
+  // Keep refs in sync
+  useEffect(() => { assistLevelRef.current = assistLevel }, [assistLevel])
+  useEffect(() => { targetPosRef.current = targetPos }, [targetPos])
+  useEffect(() => { handleFaceClickRef.current = handleFaceClick }, [handleFaceClick])
 
   // Target bounce animation
   useEffect(() => {
@@ -201,15 +211,17 @@ export default function Page() {
         let x = (1 - nose.x) * window.innerWidth
         let y = nose.y * window.innerHeight
 
-        // Auto-assist: pull cursor toward target based on assist level
-        if (assistLevel > 0) {
-          const dx = targetPos.x - x
-          const dy = targetPos.y - y
+        // Auto-assist: pull cursor toward target based on assist level (use refs)
+        const currentAssist = assistLevelRef.current
+        const currentTarget = targetPosRef.current
+        if (currentAssist > 0) {
+          const dx = currentTarget.x - x
+          const dy = currentTarget.y - y
           const distance = Math.sqrt(dx * dx + dy * dy)
           const assistRange = 200 // pixels within which assist kicks in
           
           if (distance < assistRange) {
-            const assistStrength = assistLevel * (1 - distance / assistRange) * 0.4
+            const assistStrength = currentAssist * (1 - distance / assistRange) * 0.4
             x += dx * assistStrength
             y += dy * assistStrength
           }
@@ -222,7 +234,7 @@ export default function Page() {
         const mouthOpen = Math.abs(upperLip.y - lowerLip.y)
 
         if (mouthOpen > 0.03) {
-          handleFaceClick()
+          handleFaceClickRef.current()
         }
       })
 
@@ -254,15 +266,23 @@ export default function Page() {
 
     return () => {
       mounted = false
+      // Safely close FaceMesh - check if it exists and hasn't been deleted
       if (faceMeshRef.current) {
-        faceMeshRef.current.close()
+        try {
+          faceMeshRef.current.close()
+        } catch (e) {
+          // Ignore "already deleted" errors from WASM cleanup
+        }
+        faceMeshRef.current = null
       }
+      // Stop camera stream
       if (videoRef.current?.srcObject) {
         const tracks = (videoRef.current.srcObject as MediaStream).getTracks()
         tracks.forEach((track) => track.stop())
+        videoRef.current.srcObject = null
       }
     }
-  }, [gameState, handleFaceClick, assistLevel, targetPos])
+  }, [gameState]) // Only depend on gameState - other values accessed via refs
 
   // Smooth cursor movement
   useEffect(() => {
